@@ -29,6 +29,15 @@ python my_project 100 110 1 0.05 0.2 10000
 
 The program prints the estimated option price.
 
+## Validation
+
+The Monte Carlo price is compared with the Black-Scholes analytical solution.
+
+The program outputs:
+- Monte Carlo estimated price
+- Black-Scholes price
+- Absolute error between both methods
+
 ## Notes
 
 The accuracy improves with larger simulation size (n_sim).

@@ -3,18 +3,27 @@ import math
 import random
 
 
-def monte_carlo_call_price(s0: float, k: float, t: float, r: float, sigma: float, n_sim: int) -> float:
-    payoff_sum = 0.0
+def monte_carlo_call_price_stats(
+    s0: float, k: float, t: float, r: float, sigma: float, n_sim: int
+) -> tuple[float, float, float, float]:
+    discounted_payoffs = []
 
     for _ in range(n_sim):
         z = random.gauss(0, 1)
         s_t = s0 * math.exp((r - 0.5 * sigma ** 2) * t + sigma * math.sqrt(t) * z)
         payoff = max(s_t - k, 0.0)
-        payoff_sum += payoff
+        discounted_payoff = math.exp(-r * t) * payoff
+        discounted_payoffs.append(discounted_payoff)
 
-    average_payoff = payoff_sum / n_sim
-    price = math.exp(-r * t) * average_payoff
-    return price
+    mc_price = sum(discounted_payoffs) / n_sim
+
+    variance = sum((x - mc_price) ** 2 for x in discounted_payoffs) / (n_sim - 1)
+    standard_error = math.sqrt(variance / n_sim)
+
+    ci_lower = mc_price - 1.96 * standard_error
+    ci_upper = mc_price + 1.96 * standard_error
+
+    return mc_price, standard_error, ci_lower, ci_upper
 
 
 def normal_cdf(x: float) -> float:
@@ -42,7 +51,9 @@ def main() -> None:
     sigma = float(sys.argv[5])
     n_sim = int(sys.argv[6])
 
-    mc_price = monte_carlo_call_price(s0, k, t, r, sigma, n_sim)
+    mc_price, standard_error, ci_lower, ci_upper = monte_carlo_call_price_stats(
+        s0, k, t, r, sigma, n_sim
+    )
     bs_price = black_scholes_call_price(s0, k, t, r, sigma)
     abs_error = abs(mc_price - bs_price)
 
@@ -58,6 +69,8 @@ def main() -> None:
     print(f"Monte Carlo Price = {mc_price:.6f}")
     print(f"Black-Scholes     = {bs_price:.6f}")
     print(f"Absolute Error    = {abs_error:.6f}")
+    print(f"Standard Error    = {standard_error:.6f}")
+    print(f"95% CI            = [{ci_lower:.6f}, {ci_upper:.6f}]")
 
 
 if __name__ == "__main__":

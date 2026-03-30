@@ -37,6 +37,8 @@ The program outputs:
 - Monte Carlo estimated price
 - Black-Scholes price
 - Absolute error between both methods
+- Standard error of the Monte Carlo estimator
+- 95% confidence interval
 
 ## Notes
 
